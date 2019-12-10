@@ -1,13 +1,13 @@
 MEMORY {
-    rom	: ORIGIN = 0x08000000, LENGTH = 32M
+    rom	: ORIGIN = 0x80000000, LENGTH = 0x7FFFFFFF
     iwram	: ORIGIN = 0x03000000, LENGTH = 32K
     ewram	: ORIGIN = 0x02000000, LENGTH = 256K
 }
 
-ENTRY(GBAMain)
+ENTRY(N64Main)
 
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
-OUTPUT_ARCH(arm)
+OUTPUT_ARCH(mips64el)
 
 __text_start = ORIGIN(rom);
 __eheap_end = ORIGIN(ewram) + LENGTH(ewram);
