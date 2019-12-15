@@ -1,58 +1,63 @@
 MEMORY {
-    rom	: ORIGIN = 0x80000000, LENGTH = 0x7FFFFFFF
-    iwram	: ORIGIN = 0x03000000, LENGTH = 32K
-    ewram	: ORIGIN = 0x02000000, LENGTH = 256K
+    rom	: ORIGIN = 0x80000000, LENGTH = 64M
 }
 
 ENTRY(N64Main)
 
-OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
-OUTPUT_ARCH(mips64el)
+OUTPUT_FORMAT("elf32-bigmips")
+OUTPUT_ARCH(mips)
 
 __text_start = ORIGIN(rom);
-__eheap_end = ORIGIN(ewram) + LENGTH(ewram);
-__iwram_start = ORIGIN(iwram);
-__iwram_top = ORIGIN(iwram) + LENGTH(iwram);
-__sp_irq = __iwram_top - 0x060;
-__sp_usr = __sp_irq - 0x0a0;
-__irq_flags = 0x03007ff8;
 
 SECTIONS
 {
-    . = __text_start;
+  . = __text_start;
 
-    .text :
-    {
-        KEEP(*(.gbaheader))
-        *(EXCLUDE_FILE (*.iwram*) .text*)
-        . ALIGN(4);
-    } >rom = 0xff
+  .text :
+  {
+    KEEP(*(.n64header))
+    KEEP(*(.n64main))
+    . ALIGN(32);
+  } >rom = 0xff
+  __text_end = .;
 
-    __text_end = .;
-    .fini :
-    {
-        KEEP (*(.fini))
-        . = ALIGN(4);
-    } >rom =0
+  .fini : {
+    KEEP (*(.fini))
+  } >rom =0
 
-    .rodata : {
-        *(.rodata)
-        . = ALIGN(4);
-    } >rom = 0xff
+  .rodata : {
+    *(.rodata)
+    . = ALIGN(32);
+  } >rom = 0xff
 
-    .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >rom
-    __exidx_start = .;
-    .ARM.exidx   : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) } >rom
-    __exidx_end = .;
+  .data : {
+    *(.data)
+    . = ALIGN(32);
+  } >rom = 0xff
 
-    .data : {
-        *(.data)
-        . = ALIGN(4);
-    } >ewram = 0xff
+  .bss : {
+    *(COMMON)
+    *(.bss)
+    . = ALIGN(32);
+  } >rom
 
-    .bss : {
-        *(COMMON)
-        *(.bss)
-        . = ALIGN(4);
-    } >ewram
+  .got : {
+    *(.got)
+  } >rom
+
+  .reginfo : {
+    *(.reginfo)
+  } >rom
+
+  /* Everything is statically linked, so discard PLTs. */
+  /DISCARD/ : { *(.rel.iplt) *(.rela.iplt) *(.rel.plt) *(.rela.plt) *(.plt) *(.iplt) }
+
+  /* We don't make use of debugging information, so drop that, too. */
+  /DISCARD/ : { *(.debug) *(.debug_srcinfo) *(.debug_sfnames) *(.debug_aranges) *(.debug_pubnames) *(.debug_info .gnu.linkonce.wi.*) *(.debug_abbrev) *(.debug_line .debug_line.* .debug_line_end ) *(.debug_frame) *(.debug_str) *(.debug_loc) *(.debug_macinfo) *(.debug_weaknames) *(.debug_funcnames) *(.debug_typenames) *(.debug_varnames) *(.debug_pubtypes) *(.debug_ranges) *(.debug_macro) *(.mdebug.abi32) *(.mdebug.abiN32) *(.mdebug.abi64) *(.mdebug.abiO64) *(.mdebug.eabi32) *(.mdebug.eabi64) }
+
+  /* Discard things that the standard link script drops, too. */
+  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
+
+  /* Don't include MIPS ABI information with the ROM. */
+  /DISCARD/ : { *(.MIPS.abiflags) }
 }

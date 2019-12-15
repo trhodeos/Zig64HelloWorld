@@ -2,9 +2,9 @@ const root = @import("root");
 const isUpper = @import("std").ascii.isUpper;
 const isDigit = @import("std").ascii.isDigit;
 
-pub const GBA = struct {
+pub const N64 = struct {
     pub const MEM_IO = @intToPtr(*volatile u32, 0x04000000);
-    pub const VRAM = @intToPtr([*]volatile u16, 0x06000000);
+    pub const VRAM = @intToPtr([*]volatile u16, 0x808000000);
     pub const REG_DISPCNT = @intToPtr(*volatile u32, @ptrToInt(MEM_IO) + 0x0000);
     pub const SCREEN_WIDTH = 240;
     pub const SCREEN_HEIGHT = 160;
@@ -155,36 +155,19 @@ pub const GBA = struct {
 
         const All = clearEwRam | clearIwram | clearPalette | clearVRAM | clearOAM | resetSIORegisters | resetSoundRegisters | resetOtherRegisters;
     };
-
-    // TODO: Figure out how to pass the reset flags and don't get eaten up by the optimizer
-    pub fn BIOSRegisterRamReset() void {
-        asm volatile(
-            \\movs r0, #0xFF
-            \\swi 1
-        );
-    }
 };
 
-export nakedcc fn GBAMain() noreturn {
+export nakedcc fn N64Main() noreturn {
     // Assembly init code
     asm volatile (
-        \\.arm
-        \\.cpu arm7tdmi
-        \\mov r0, #0x4000000
-        \\str r0, [r0, #0x208]
-        \\
-        \\mov r0, #0x12
-        \\msr cpsr, r0
-        \\ldr sp, =__sp_irq
-        \\mov r0, #0x1f
-        \\msr cpsr, r0
-        \\ldr sp, =__sp_usr
-        \\add r0, pc, #1
-        \\bx r0
+      \\.set noat
+      \\addiu $v0, $zero, 0x8
+      \\lui $at, 0xBFC0
+      \\sw $v0, 0x7FC($at)
     );
 
     // Use BIOS function to clear all data
-    GBA.BIOSRegisterRamReset();
+    //N64.BIOSRegisterRamReset();
 
     // call user's main
     root.main();

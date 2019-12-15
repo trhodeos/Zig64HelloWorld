@@ -8,7 +8,7 @@ pub fn build(b: *Builder) void {
     exe.setTheTarget(std.Target {
         .Cross = std.Target.Cross {
             .arch = std.Target.Arch {
-                .mips64el = {}
+                .mips = {}
             },
             .os = .freestanding,
             .abi = .none
