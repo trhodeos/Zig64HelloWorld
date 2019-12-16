@@ -10,9 +10,8 @@ pub fn main() noreturn {
 
     Video.setupNtsc(width, height, Video.VideoStatusFlags.BPP32 | Video.VideoStatusFlags.INTERLACE | Video.VideoStatusFlags.AA_MODE_2, 0xA0100000);
     var i: usize = 0;
-    while (i < width * height) {
+    while (i < width * height) : (i += 1) {
         dram[i] = 0xFFFFFFFF;
-        i += 1;
     }
 
     while (true) {}
