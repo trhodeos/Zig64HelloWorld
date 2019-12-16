@@ -71,5 +71,9 @@ export nakedcc fn N64main() linksection(".n64main") noreturn {
     );
 
     // call user's main
-    root.main();
+    if (@hasDecl(root, "main")) {
+        root.main();
+    } else {
+        while (true) {}
+    }
 }
