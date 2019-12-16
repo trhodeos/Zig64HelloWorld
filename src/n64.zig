@@ -8,18 +8,17 @@ pub const N64 = struct {
         piBsbDom1PgsReg: u8,
         piBsbDom1PwdReg: u8,
         piBsbDom1PgsReg2: u8,
-        initialClockRate: u16,
-        bootAddressOffset: u16,
-        releaseOffset: u16,
-        crc1: u8,
-        crc2: u8,
-        unused1: u32,
-        gameName: [27]u8,
-        developerId: u8,
-        cartridgeId: u8,
-        unused2: u8,
-        countryCode: u8,
-        unused3: u8,
+        initialClockRate: u32,
+        bootAddressOffset: u32,
+        releaseOffset: u32,
+        crc1: u32,
+        crc2: u32,
+        unused1: u64,
+        gameName: [20]u8,
+        unused2: u32,
+        developerId: u32,
+        cartridgeId: u16,
+        countryCode: u16,
 
         pub fn setup(comptime gameName: []const u8) Header {
             var header = Header{
@@ -27,31 +26,30 @@ pub const N64 = struct {
                 .piBsbDom1PgsReg = 0x37,
                 .piBsbDom1PwdReg = 0x12,
                 .piBsbDom1PgsReg2 = 0x40,
-                .initialClockRate = 0x0F,
-                .bootAddressOffset = 0x0,
+                .initialClockRate = 0x0,
+                .bootAddressOffset = 0x80001000,
                 .releaseOffset = 0x0,
                 .crc1 = 0x0,
                 .crc2 = 0x0,
 
-                .gameName = [_]u8{' '} ** 27,
+                .gameName = [_]u8{' '} ** 20,
                 .developerId = 0,
                 .cartridgeId = 0,
                 .countryCode = 0,
 
                 .unused1 = 0,
                 .unused2 = 0,
-                .unused3 = 0,
             };
 
             comptime {
                 for (gameName) |value, index| {
                     var validChar = isUpper(value) or isDigit(value);
 
-                    if (validChar and index < 27) {
+                    if (validChar and index < 20) {
                         header.gameName[index] = value;
                     } else {
-                        if (index >= 27) {
-                            @compileError("Game name is too long, it needs to be no longer than 27 characters.");
+                        if (index >= 20) {
+                            @compileError("Game name is too long, it needs to be no longer than 20 characters.");
                         } else if (!validChar) {
                             @compileError("Game name needs to be in uppercase, it can use digits.");
                         }
@@ -64,7 +62,7 @@ pub const N64 = struct {
     };
 };
 
-export nakedcc fn n64Main() noreturn {
+export nakedcc fn N64main() linksection(".n64main") noreturn {
     asm volatile (
         \\.set noat
         \\addiu $v0, $zero, 0x8

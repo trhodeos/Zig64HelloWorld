@@ -16,24 +16,25 @@ SECTIONS
   .text :
   {
     KEEP(*(.n64header))
+    . = 0x80001000;
     KEEP(*(.n64main))
-    . ALIGN(32);
-  } >rom = 0xff
+    . = ALIGN(4);
+  } >rom = 0
   __text_end = .;
 
   .fini : {
     KEEP (*(.fini))
-  } >rom =0
+  } >rom
 
   .rodata : {
     *(.rodata)
     . = ALIGN(32);
-  } >rom = 0xff
+  } >rom
 
   .data : {
     *(.data)
     . = ALIGN(32);
-  } >rom = 0xff
+  } >rom
 
   .bss : {
     *(COMMON)
@@ -48,6 +49,12 @@ SECTIONS
   .reginfo : {
     *(.reginfo)
   } >rom
+
+  .text2 : {
+    . = 0x80101000;
+    . = ALIGN(4);
+  } >rom =0
+  __text2_end = .;
 
   /* Everything is statically linked, so discard PLTs. */
   /DISCARD/ : { *(.rel.iplt) *(.rela.iplt) *(.rel.plt) *(.rela.plt) *(.plt) *(.iplt) }
