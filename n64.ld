@@ -4,7 +4,7 @@ SECTIONS {
       KEEP(*(.n64header))
     }
 
-    . = 0x80000400;
+    . = 0x80001000;
     __boot_start = .;
 
     .boot : {
