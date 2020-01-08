@@ -1,70 +1,50 @@
-MEMORY {
-    rom	: ORIGIN = 0x80000000, LENGTH = 64M
-}
+SECTIONS {
+    . = 0x80000000;
+    .n64header : {
+      KEEP(*(.n64header))
+    }
 
-ENTRY(N64Main)
+    . = 0x80000400;
+    __boot_start = .;
 
-OUTPUT_FORMAT("elf32-bigmips")
-OUTPUT_ARCH(mips)
+    .boot : {
+        KEEP(*(.boot))
+    }
 
-__text_start = ORIGIN(rom);
+    .text : {
+        *(.text .text.*)
+    }
 
-SECTIONS
-{
-  . = __text_start;
+    .rodata : {
+        *(.rodata .rodata.*)
+    }
 
-  .text :
-  {
-    KEEP(*(.n64header))
-    . = 0x80001000;
-    KEEP(*(.n64main))
-    . = ALIGN(4);
-  } >rom = 0
-  __text_end = .;
+    .data : {
+        *(.data .data.*)
+    }
 
-  .fini : {
-    KEEP (*(.fini))
-  } >rom
+    .bss : {
+        . = ALIGN(4);
+        __bss_start = .;
+        *(.bss .bss.*)
+        __bss_end = .;
+    }
 
-  .rodata : {
-    *(.rodata)
-    . = ALIGN(32);
-  } >rom
+    . = ALIGN(2);
+    __rom_end = . - __boot_start + 0xB0001000;
 
-  .data : {
-    *(.data)
-    . = ALIGN(32);
-  } >rom
+    /DISCARD/ : {
+        *(.MIPS.*)
+        *(.comment)
+        *(.mdebug.*)
+        *(.pdr)
+        *(.reginfo)
 
-  .bss : {
-    *(COMMON)
-    *(.bss)
-    . = ALIGN(32);
-  } >rom
-
-  .got : {
-    *(.got)
-  } >rom
-
-  .reginfo : {
-    *(.reginfo)
-  } >rom
-
-  .text2 : {
-    . = 0x80101000;
-    . = ALIGN(4);
-  } >rom =0
-  __text2_end = .;
-
-  /* Everything is statically linked, so discard PLTs. */
-  /DISCARD/ : { *(.rel.iplt) *(.rela.iplt) *(.rel.plt) *(.rela.plt) *(.plt) *(.iplt) }
-
-  /* We don't make use of debugging information, so drop that, too. */
-  /DISCARD/ : { *(.debug) *(.debug_srcinfo) *(.debug_sfnames) *(.debug_aranges) *(.debug_pubnames) *(.debug_info .gnu.linkonce.wi.*) *(.debug_abbrev) *(.debug_line .debug_line.* .debug_line_end ) *(.debug_frame) *(.debug_str) *(.debug_loc) *(.debug_macinfo) *(.debug_weaknames) *(.debug_funcnames) *(.debug_typenames) *(.debug_varnames) *(.debug_pubtypes) *(.debug_ranges) *(.debug_macro) *(.mdebug.abi32) *(.mdebug.abiN32) *(.mdebug.abi64) *(.mdebug.abiO64) *(.mdebug.eabi32) *(.mdebug.eabi64) }
-
-  /* Discard things that the standard link script drops, too. */
-  /DISCARD/ : { *(.note.GNU-stack) *(.gnu_debuglink) *(.gnu.lto_*) }
-
-  /* Don't include MIPS ABI information with the ROM. */
-  /DISCARD/ : { *(.MIPS.abiflags) }
+        /*
+         * We may need the global offset table some day.
+         * Our target is currently set with a static relocation-model, so this
+         * might not be needed after all.
+         */
+        *(.got)
+    }
 }

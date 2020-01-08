@@ -62,7 +62,7 @@ pub const N64 = struct {
     };
 };
 
-export nakedcc fn N64main() linksection(".n64main") noreturn {
+export nakedcc fn N64main() linksection(".boot") noreturn {
     asm volatile (
         \\.set noat
         \\addiu $v0, $zero, 0x8
